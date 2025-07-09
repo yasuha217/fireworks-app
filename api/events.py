@@ -5,10 +5,6 @@ from datetime import datetime
 app = FastAPI()
 
 @app.get("/")
-def root():
-    return {"ok": True, "ts": datetime.utcnow().isoformat()}
-
-@app.get("/events")
 def events():
     return JSONResponse(
         {
