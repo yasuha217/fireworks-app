@@ -5,6 +5,7 @@ from datetime import datetime
 app = FastAPI()
 
 @app.get("/")
+@app.get("/events")
 def events():
     return JSONResponse(
         {
