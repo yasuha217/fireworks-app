@@ -230,7 +230,7 @@ body {
 .events-container,
 .event-cards-container {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
     gap: 2rem !important;
     padding: 32px 12px !important;
     max-width: 1200px !important;
@@ -242,7 +242,7 @@ body {
     .events-grid,
     .events-container,
     .event-cards-container {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
         gap: 1.5rem !important;
         padding: 24px 16px;
     }

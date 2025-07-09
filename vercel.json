@@ -1,4 +1,11 @@
 {
   "version": 2,
-  "framework": "nextjs"
+  "builds": [
+    { "src": "api/**/*.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api/$1.py" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "public/$1" }
+  ]
 }
