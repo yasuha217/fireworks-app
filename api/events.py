@@ -43,3 +43,7 @@ def events():
             "timestamp": datetime.utcnow().isoformat()
         }
     )
+
+@app.get("/api/events")
+def events_alias():
+    return events()
