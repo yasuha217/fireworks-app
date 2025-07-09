@@ -1,14 +1,19 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import List, Dict, Optional
+from typing import Dict, Optional
 import logging
 from datetime import datetime
-import asyncio
 import os
 
-from psytrance_scraper import PsytranceScraper
-from cache import event_cache
+try:
+    from psytrance_scraper import PsytranceScraper
+    from cache import event_cache
+except ImportError as e:
+    # Fallback for missing dependencies
+    PsytranceScraper = None
+    event_cache = None
+    print(f"Import warning: {e}")
 
 # ログ設定
 logging.basicConfig(level=logging.INFO)
@@ -25,33 +30,24 @@ app = FastAPI(
     root_path="/api" if is_production else ""
 )
 
-# CORS設定
-allowed_origins = [
-    "http://localhost:8006",
-    "http://localhost:5173", 
-    "https://*.vercel.app"
-]
-
-if is_production:
-    # Production - allow Vercel domains
-    allowed_origins.extend([
-        "https://psyfinder.vercel.app",
-        "https://psyfinder-*.vercel.app"
-    ])
-else:
-    # Development - allow localhost
-    allowed_origins.append("*")
-
+# CORS設定 - Vercel compatible
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],  # Simplified for Vercel
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
+    allow_credentials=False,
 )
 
-# グローバル変数
-scraper = PsytranceScraper()
+# グローバル変数 - Vercel serverless compatible
+scraper = None
 is_scraping = False
+
+def get_scraper():
+    global scraper
+    if scraper is None and PsytranceScraper is not None:
+        scraper = PsytranceScraper()
+    return scraper
 
 @app.get("/")
 async def root():
@@ -62,19 +58,30 @@ async def root():
         "message": "PsyFinder API",
         "version": "1.0.0",
         "description": "Psytrance events from Tokyo, Japan",
+        "status": "running",
+        "environment": "vercel" if is_production else "development",
         "endpoints": {
+            "/health": "Health check",
             "/events": "Get psytrance events",
             "/events?source=clubberia": "Get Clubberia events",
-            "/events?source=major": "Get major festivals",
-            "/events/refresh": "Force refresh events cache",
-            "/cache/info": "Get cache information",
-            "/health": "Health check"
+            "/events?source=major": "Get major festivals"
         }
+    }
+
+@app.get("/health")
+async def health_check():
+    """
+    シンプルなヘルスチェック
+    """
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.0.0",
+        "environment": "vercel" if is_production else "development"
     }
 
 @app.get("/events")
 async def get_events(
-    background_tasks: BackgroundTasks,
     force_refresh: bool = False,
     source: str = "clubberia",
     genre: str = "psy"
@@ -93,23 +100,53 @@ async def get_events(
     try:
         # Major Festivalsソースの場合
         if source == "major":
-            from major_fests_scraper import MajorFestsScraper
-            scraper = MajorFestsScraper()
-            events = scraper.scrape_major_festivals()
-            
-            logger.info(f"Returning {len(events)} major festivals")
-            data = {
-                "success": True,
-                "events": events,
-                "total": len(events),
-                "source": "major_festivals",
-                "timestamp": datetime.now().isoformat()
-            }
-            return JSONResponse(content=data)
+            try:
+                from major_fests_scraper import MajorFestsScraper
+                scraper = MajorFestsScraper()
+                events = scraper.scrape_major_festivals()
+                
+                logger.info(f"Returning {len(events)} major festivals")
+                data = {
+                    "success": True,
+                    "events": events,
+                    "total": len(events),
+                    "source": "major_festivals",
+                    "timestamp": datetime.now().isoformat()
+                }
+                return JSONResponse(content=data)
+            except Exception as e:
+                logger.error(f"Major festivals scraping failed: {e}")
+                # Return fallback data
+                fallback_events = [
+                    {
+                        "title": "Tomorrowland 2024",
+                        "date": "2024-07-19",
+                        "place": "Boom, Belgium",
+                        "genre": "Electronic/Psytrance",
+                        "description": "The world's most famous electronic music festival",
+                        "url": "https://www.tomorrowland.com",
+                        "image": "https://images.unsplash.com/photo-1518005020951-eccb49447d0a"
+                    }
+                ]
+                return JSONResponse(content={
+                    "success": True,
+                    "events": fallback_events,
+                    "total": len(fallback_events),
+                    "source": "fallback_major",
+                    "warning": f"Using fallback data: {str(e)}",
+                    "timestamp": datetime.now().isoformat()
+                })
         
         # Clubberiaソースの場合は直接スクレイピング
         if source == "clubberia":
-            events = event_cache.get_events(source="clubberia", ttl=21600)  # 6時間キャッシュ
+            try:
+                if event_cache is not None:
+                    events = event_cache.get_events(source="clubberia", ttl=21600)  # 6時間キャッシュ
+                else:
+                    events = []
+            except Exception as e:
+                logger.error(f"Clubberia cache failed: {e}")
+                events = []
             
             # ジャンルフィルタリング
             if genre == "psy":
@@ -321,28 +358,9 @@ async def scrape_and_cache_events():
     finally:
         is_scraping = False
 
-@app.on_event("startup")
-async def startup_event():
-    """
-    アプリケーション起動時の処理
-    """
-    logger.info("PsyFinder API starting up...")
-    
-    # 起動時に初回スクレイピングを実行（エラーは無視）
-    try:
-        await scrape_and_cache_events()
-        logger.info("Initial scraping completed")
-    except Exception as e:
-        logger.warning(f"Initial scraping failed, will use fallback data: {e}")
+# Startup/shutdown events removed for Vercel serverless compatibility
 
-@app.on_event("shutdown") 
-async def shutdown_event():
-    """
-    アプリケーション終了時の処理
-    """
-    logger.info("PsyFinder API shutting down...")
-
-# エラーハンドラー
+# エラーハンドラー - Simplified for Vercel
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
     """
@@ -354,7 +372,6 @@ async def general_exception_handler(request, exc):
         content={
             "success": False,
             "error": "Internal server error",
-            "detail": str(exc),
             "timestamp": datetime.now().isoformat()
         }
     )
