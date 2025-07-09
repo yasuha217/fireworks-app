@@ -1,9 +1,9 @@
 // Global variables
 let eventCardsContainer, searchForm, loadingElement;
-// Use environment-aware API URL for Vercel deployment
+// Use relative API URL for Vercel deployment
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8001' 
-    : `${window.location.protocol}//${window.location.host}/api`;
+    : '/api';
 
 // Global variable to prevent concurrent API calls
 let isLoadingEvents = false;
