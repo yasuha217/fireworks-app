@@ -1,12 +1,10 @@
-# api/events.py  ★ここだけ修正★
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
-app = FastAPI()            # root_path は付けない
+app = FastAPI()
 
-# ← 余計な @app.get("/events") は削除
-@app.get("/")              # /api/events で呼ばれる
+@app.get("/")
 def events():
     return JSONResponse(
         {
