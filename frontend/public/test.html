@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsyFinder Test</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .event-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #44ff44;
+            background: rgba(68, 255, 68, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        button {
+            background: #00ffff;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>PsyFinder API Test</h1>
+        
+        <div>
+            <button onclick="testClubberiaAPI()">Test Clubberia API</button>
+            <button onclick="testMajorAPI()">Test Major Festivals API</button>
+            <button onclick="testHealthAPI()">Test Health API</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8001';
+        
+        async function testClubberiaAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing Clubberia API...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/events?source=clubberia`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    results.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Clubberia API Success</h3>
+                            <p>Found ${data.events.length} events</p>
+                            <p>Source: ${data.source}</p>
+                        </div>
+                    `;
+                    
+                    // Show first 3 events
+                    data.events.slice(0, 3).forEach(event => {
+                        results.innerHTML += `
+                            <div class="event-card">
+                                <h4>${event.title}</h4>
+                                <p>Date: ${event.date}</p>
+                                <p>Place: ${event.place}</p>
+                                <p>Genre: ${event.genre}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    results.innerHTML = `<div class="error">❌ API returned success=false</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testMajorAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing Major Festivals API...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/events?source=major`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    results.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Major Festivals API Success</h3>
+                            <p>Found ${data.events.length} events</p>
+                            <p>Source: ${data.source}</p>
+                        </div>
+                    `;
+                    
+                    // Show all major festivals
+                    data.events.forEach(event => {
+                        results.innerHTML += `
+                            <div class="event-card">
+                                <h4>${event.title}</h4>
+                                <p>Date: ${event.date}</p>
+                                <p>Place: ${event.place}</p>
+                                <p>Genre: ${event.genre}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    results.innerHTML = `<div class="error">❌ API returned success=false</div>`;
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testHealthAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing Health API...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                results.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Health API Success</h3>
+                        <p>Status: ${data.status}</p>
+                        <p>Cache valid: ${data.cache_valid}</p>
+                        <p>Events cached: ${data.events_cached}</p>
+                    </div>
+                `;
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Auto-test on load
+        window.onload = () => {
+            testHealthAPI();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/main.py"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/public/index.html"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico))",
+      "dest": "/frontend/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/public/index.html"
+    }
+  ],
+  "env": {
+    "PYTHONPATH": "/var/task"
+  }
+}

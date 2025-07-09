@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsyFinder - Find Your Next Psychedelic Trance Event</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Emergency fallback styles */
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e) !important;
+            color: white !important;
+            font-family: 'Orbitron', sans-serif !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 100vh !important;
+        }
+        
+        .test-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ffff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="global-nav">
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Upcoming</a></li>
+                <li><a href="#">Genres</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>PsyFinder</h1>
+                <p>Find Your Next Psychedelic Trance Event</p>
+                <a href="#" class="cta-button">Explore Events</a>
+            </div>
+        </section>
+
+        <section class="search-section">
+            <h2>Search Events</h2>
+            <form id="search-form" class="search-form">
+                <select id="source-filter" class="search-select">
+                    <option value="major">🌍 Global Festivals</option>
+                    <option value="clubberia" selected>🎵 Tokyo Psy Events</option>
+                </select>
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </section>
+
+        <section class="event-list-section">
+            <h2>Events</h2>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching for events...</p>
+            </div>
+            <div id="event-cards-container" class="event-cards-container events-container">
+                <!-- Event cards will be injected here by app.js -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Remove debug overlay in production
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('PsyFinder Loading...');
+            
+            // Remove debug overlay if it exists
+            const debugInfo = document.getElementById('debug-info');
+            if (debugInfo) {
+                debugInfo.remove();
+            }
+            
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
