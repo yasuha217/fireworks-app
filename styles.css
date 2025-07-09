@@ -226,16 +226,8 @@ body {
     margin-bottom: 40px;
 }
 
-.events-container {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 2rem !important;
-    padding: 32px 12px !important;
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-}
-
-/* Legacy support for old container name */
+.events-grid,
+.events-container,
 .event-cards-container {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
@@ -247,6 +239,7 @@ body {
 
 /* Responsive design */
 @media (max-width: 1024px) {
+    .events-grid,
     .events-container,
     .event-cards-container {
         grid-template-columns: repeat(2, 1fr) !important;
@@ -256,6 +249,7 @@ body {
 }
 
 @media (max-width: 768px) {
+    .events-grid,
     .events-container,
     .event-cards-container {
         grid-template-columns: 1fr !important;
