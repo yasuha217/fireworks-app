@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/events.py": {
+      "runtime": "python3.9"
+    }
+  }
+}

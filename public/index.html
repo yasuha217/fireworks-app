@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsyFinder - Find Your Next Psychedelic Trance Event</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">PsyFinder</h1>
+            <p class="subtitle">Find Your Next Psychedelic Trance Event</p>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <form id="search-form" class="search-form">
+                <select id="source-filter" class="filter-select">
+                    <option value="major">Major Festivals</option>
+                    <option value="clubberia">Tokyo Events</option>
+                </select>
+                <button type="submit" class="search-button">Search Events</button>
+            </form>
+        </section>
+
+        <!-- Event List Section -->
+        <section class="event-list-section">
+            <h2>Upcoming Events</h2>
+            
+            <!-- Loading Spinner -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading events...</p>
+            </div>
+
+            <!-- Events Grid Container -->
+            <div id="event-cards-container" class="events-grid">
+                <!-- Events will be loaded here via JavaScript -->
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 PsyFinder. Find your next psychedelic trance adventure.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
