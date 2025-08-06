@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Tap Fireworks – Night City v5</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    /* 夜空のグラデーション */
+    body {
+      background: linear-gradient(#0c4fa8 0%, #073b7c 50%, #021534 100%);
+    }
+    /* コントロールパネル */
+    #controls {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 3;
+    }
+    #controls button {
+      background: rgba(255,255,255,0.8);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    /* 花火キャンバス（背面） */
+    canvas#sky {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    /* 街並みシルエットキャンバス（前面） */
+    canvas#ground {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 26vh;
+      z-index: 2;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- コントロールボタン -->
+  <div id="controls">
+    <button id="colorBtn">色を変える</button>
+    <button id="increaseBtn">大きく</button>
+    <button id="decreaseBtn">小さく</button>
+  </div>
+
+  <!-- 花火 -->
+  <canvas id="sky"></canvas>
+  <!-- 街並みシルエット -->
+  <canvas id="ground"></canvas>
+
+  <script>
+    const skyCanvas    = document.getElementById('sky');
+    const skyCtx       = skyCanvas.getContext('2d');
+    const groundCanvas = document.getElementById('ground');
+    const groundCtx    = groundCanvas.getContext('2d');
+    let fireworks = [];
+
+    // 現在の色とサイズ係数
+    let currentColor = getRandomColor();
+    let sizeFactor   = 1;    // 初期値1、0.2〜2の間で調整
+
+    // リサイズ＆シルエット再描画
+    function resize() {
+      skyCanvas.width  = window.innerWidth;
+      skyCanvas.height = window.innerHeight;
+      groundCanvas.width  = window.innerWidth;
+      groundCanvas.height = window.innerHeight * 0.26;
+      drawSilhouette();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 街並みシルエット描画
+    function drawSilhouette() {
+      const w = groundCanvas.width;
+      const h = groundCanvas.height;
+      groundCtx.fillStyle = '#021534';
+      groundCtx.fillRect(0, 0, w, h);
+      groundCtx.fillStyle = '#000';
+      let x = 0;
+      while (x < w) {
+        const bw = Math.random() * (w * 0.07 - w * 0.03) + w * 0.03;
+        const bh = Math.random() * (h * 0.6 - h * 0.3) + h * 0.3;
+        groundCtx.fillRect(x, h - bh, bw, bh);
+        x += bw + Math.random() * 20;
+      }
+    }
+
+    // 花火生成
+    const SKY_LIMIT = 0.74;
+    function createFirework(x, y) {
+      const baseCount = 60;
+      const count = Math.max(10, Math.floor(baseCount * sizeFactor));
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = (Math.random() * 4 + 2) * sizeFactor;
+        fireworks.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, alpha: 1, color: currentColor });
+      }
+    }
+    function getRandomColor() {
+      return `hsl(${Math.random() * 360},100%,60%)`;
+    }
+
+    // タップ＆クリックイベント
+    function onTap(e) {
+      const rect = skyCanvas.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+      if (y < skyCanvas.height * SKY_LIMIT) {
+        createFirework(x, y);
+      }
+    }
+    skyCanvas.addEventListener('pointerdown', onTap);
+    skyCanvas.addEventListener('touchstart', onTap);
+
+    // アニメーション
+    function animate() {
+      requestAnimationFrame(animate);
+      skyCtx.fillStyle = 'rgba(0,0,40,0.15)';
+      skyCtx.fillRect(0, 0, skyCanvas.width, skyCanvas.height);
+
+      fireworks = fireworks.filter(p => p.alpha > 0.05);
+      for (const p of fireworks) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.05;
+        p.alpha *= 0.96;
+        skyCtx.globalAlpha = p.alpha;
+        skyCtx.fillStyle = p.color;
+        skyCtx.beginPath();
+        skyCtx.arc(p.x, p.y, 3 * sizeFactor, 0, Math.PI * 2);
+        skyCtx.fill();
+      }
+      skyCtx.globalAlpha = 1;
+    }
+    animate();
+
+    // ボタン処理
+    document.getElementById('colorBtn').addEventListener('click', () => {
+      currentColor = getRandomColor();
+    });
+    document.getElementById('increaseBtn').addEventListener('click', () => {
+      sizeFactor = Math.min(2, sizeFactor + 0.2);
+    });
+    document.getElementById('decreaseBtn').addEventListener('click', () => {
+      sizeFactor = Math.max(0.2, sizeFactor - 0.2);
+    });
+  </script>
+</body>
+</html>
